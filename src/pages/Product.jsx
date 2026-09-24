@@ -7,7 +7,7 @@ import RelatedProducts from '../componenets/RelatedProducts';
 const Product = () => {
 
   const { productId } = useParams();
-  const { products, currency } = useContext(ShopContext);
+  const { products, currency, addToCart } = useContext(ShopContext);
   const [productData, setProductData] = useState(false);
   const [image, setImage] = useState('');
   const [size, setSize] = useState('');
@@ -100,7 +100,7 @@ const Product = () => {
           </div>
 
           {/* Add to Cart CTA */}
-          <button className='bg-black text-white px-8 py-3 text-sm active:bg-gray-700 hover:bg-gray-800 transition-all shadow-sm'>
+          <button onClick={()=> addToCart(productData._id, size)} className='bg-black text-white px-8 py-3 text-sm active:bg-gray-700 hover:bg-gray-800 transition-all shadow-sm'>
             ADD TO CART
           </button>
 
