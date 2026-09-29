@@ -12,6 +12,7 @@ const Product = () => {
   const [image, setImage] = useState('');
   const [size, setSize] = useState('');
   const [activeTab, setActiveTab] = useState('description');
+  const [sizeError, setSizeError] = useState(false);
 
   const fetchProductData = async () => {
     const item = products.find((item) => item._id === productId);
@@ -23,154 +24,279 @@ const Product = () => {
 
   useEffect(() => {
     fetchProductData();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [productId, products]);
 
+  const handleAddToCart = () => {
+    if (!size) {
+      setSizeError(true);
+      return;
+    }
+    setSizeError(false);
+    addToCart(productData._id, size);
+  }
+
   return productData ? (
-    <div className='border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100'>
+    <div className='max-w-7xl mx-auto pt-8 pb-20 border-t border-gray-100 transition-opacity ease-in duration-500 opacity-100'>
      
-      {/* ------------- Product Main Section ------------- */}
-      <div className='flex gap-8 sm:gap-12 flex-col sm:flex-row'>
+      {/* ================= Product Main Section ================= */}
+      <div className='flex flex-col lg:flex-row gap-10 lg:gap-16 items-start'>
         
-        {/* ------------- Product Images Gallery ------------- */}
-        <div className='flex-1 flex flex-col-reverse gap-3 sm:flex-row'>
+        {/* ------------- Left: Image Gallery ------------- */}
+        <div className='w-full lg:w-3/5 flex flex-col-reverse sm:flex-row gap-4 lg:sticky lg:top-24'>
           
           {/* Thumbnails */}
-          <div className='flex sm:flex-col overflow-x-auto sm:overflow-y-auto justify-start gap-2.5 sm:gap-0 sm:justify-normal sm:w-[19%] w-full'>
-            {
-              productData.image.map((item, index) => (
-                <img 
-                  onClick={() => setImage(item)}
-                  src={item} 
-                  key={index} 
-                  className={`w-[22%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer object-cover border transition-all rounded-sm ${
-                    item === image ? 'border-orange-500 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'
-                  }`} 
-                  alt={`thumbnail-${index}`} 
-                />
-              ))
-            }
+          <div className='flex sm:flex-col overflow-x-auto sm:overflow-y-auto justify-start gap-3 sm:w-20 lg:w-24 shrink-0 no-scrollbar'>
+            {productData.image.map((item, index) => (
+              <button 
+                key={index}
+                onClick={() => setImage(item)}
+                className={`relative rounded-xl overflow-hidden border-2 transition-all duration-200 aspect-square w-16 sm:w-full shrink-0 cursor-pointer ${
+                  item === image ? 'border-black shadow-xs' : 'border-transparent opacity-70 hover:opacity-100'
+                }`}
+              >
+                <img src={item} className='w-full h-full object-cover' alt={`thumb-${index}`} />
+              </button>
+            ))}
           </div>
 
-          {/* Main Large Image */}
-          <div className='w-full sm:w-[80%]'>
-            <img className='w-full h-auto object-cover rounded-sm' src={image} alt={productData.name} />
+          {/* Main Display Image */}
+          <div className='flex-1 rounded-2xl overflow-hidden bg-gray-50/60 border border-gray-100 shadow-xs'>
+            <img 
+              className='w-full h-auto max-h-[640px] object-cover object-top hover:scale-105 transition-transform duration-700 ease-out' 
+              src={image} 
+              alt={productData.name} 
+            />
           </div>
         </div>
 
-        {/* ------------- Product Info ------------- */}
-        <div className='flex-1'>
-          <h1 className='font-medium text-2xl mt-2 text-gray-800'>{productData.name}</h1>
+        {/* ------------- Right: Product Details & Purchase ------------- */}
+        <div className='w-full lg:w-2/5 flex flex-col'>
           
-          {/* Star Ratings */}
-          <div className='flex items-center gap-1 mt-2'>
-            <img src={assets.star_icon} alt="" className="w-3.5" />
-            <img src={assets.star_icon} alt="" className="w-3.5" />
-            <img src={assets.star_icon} alt="" className="w-3.5" />
-            <img src={assets.star_icon} alt="" className="w-3.5" />
-            <img src={assets.star_dull_icon} alt="" className="w-3.5" />
-            <p className='pl-2 text-sm text-gray-500'>(122 reviews)</p>
+          {/* Category & Availability Badges */}
+          <div className='flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2'>
+            <span>{productData.category} / {productData.subCategory}</span>
+            <span className='inline-flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full text-[11px] font-medium'>
+              <span className='w-1.5 h-1.5 rounded-full bg-emerald-500'></span>
+              In Stock
+            </span>
+          </div>
+
+          {/* Product Title */}
+          <h1 className='text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 mt-1 leading-snug'>
+            {productData.name}
+          </h1>
+
+          {/* Ratings & Reviews Counter */}
+          <div className='flex items-center gap-2 mt-3'>
+            <div className='flex items-center gap-0.5 text-amber-400'>
+              <img src={assets.star_icon} alt="" className="w-4 h-4" />
+              <img src={assets.star_icon} alt="" className="w-4 h-4" />
+              <img src={assets.star_icon} alt="" className="w-4 h-4" />
+              <img src={assets.star_icon} alt="" className="w-4 h-4" />
+              <img src={assets.star_dull_icon} alt="" className="w-4 h-4" />
+            </div>
+            <span className='text-xs font-semibold text-gray-800 ml-1'>4.8</span>
+            <span className='text-xs text-gray-400'>•</span>
+            <a href="#reviews" onClick={() => setActiveTab('reviews')} className='text-xs text-gray-500 hover:text-black underline cursor-pointer'>
+              122 customer reviews
+            </a>
           </div>
 
           {/* Price */}
-          <p className='mt-5 text-3xl font-medium text-gray-900'>{currency}{productData.price}</p>
-          
+          <div className='mt-6 pb-6 border-b border-gray-100 flex items-baseline gap-3'>
+            <span className='text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight'>
+              {currency}{productData.price}
+            </span>
+            <span className='text-xs text-gray-400'>Tax included • Shipping calculated at checkout</span>
+          </div>
+
           {/* Short Description */}
-          <p className='mt-5 text-gray-600 md:w-4/5 leading-relaxed text-sm sm:text-base'>
+          <p className='mt-5 text-gray-600 text-sm sm:text-base leading-relaxed'>
             {productData.description}
           </p>
 
-          {/* Sizes */}
-          <div className='flex flex-col gap-4 my-8'>
-            <p className='text-sm font-medium text-gray-700'>Select Size</p>
-            <div className='flex gap-2 flex-wrap'>
+          {/* Size Selector */}
+          <div className='mt-8'>
+            <div className='flex items-center justify-between mb-3'>
+              <label className='text-xs font-bold uppercase tracking-wider text-gray-900'>
+                Select Size
+              </label>
+              <button className='text-xs text-gray-400 hover:text-black underline cursor-pointer'>
+                Size Guide
+              </button>
+            </div>
+
+            <div className='flex items-center gap-2.5 flex-wrap'>
               {productData.sizes.map((item, index) => (
                 <button 
-                  onClick={() => setSize(item)}
-                  className={`border py-2 px-4 bg-gray-50 text-sm font-medium transition-all rounded-sm ${
-                    item === size 
-                      ? 'border-orange-500 bg-orange-50 text-orange-600' 
-                      : 'border-gray-200 hover:border-gray-400'
-                  }`}
                   key={index}
+                  onClick={() => { setSize(item); setSizeError(false); }}
+                  className={`min-w-12 h-11 px-4 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 border cursor-pointer ${
+                    item === size 
+                      ? 'border-black bg-black text-white shadow-xs' 
+                      : 'border-gray-200 hover:border-gray-400 bg-white text-gray-700'
+                  }`}
                 >
                   {item}
                 </button>
               ))}
             </div>
+
+            {/* Error Message if size not chosen */}
+            {sizeError && (
+              <p className='text-xs font-medium text-rose-500 mt-2.5 flex items-center gap-1.5'>
+                <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Please choose a size before adding to cart.
+              </p>
+            )}
           </div>
 
           {/* Add to Cart CTA */}
-          <button onClick={()=> addToCart(productData._id, size)} className='bg-black text-white px-8 py-3 text-sm active:bg-gray-700 hover:bg-gray-800 transition-all shadow-sm'>
-            ADD TO CART
-          </button>
-
-          <hr className='mt-8 sm:w-4/5 border-gray-200' />
-          
-          {/* Guarantee Badges */}
-          <div className='text-sm text-gray-500 mt-5 flex flex-col gap-1.5'>
-            <p>✓ 100% Original product guarantee.</p>
-            <p>✓ Cash on delivery is available on this product.</p>
-            <p>✓ Easy return and exchange policy within 7 days.</p>
+          <div className='mt-8'>
+            <button 
+              onClick={handleAddToCart}
+              className='w-full bg-black hover:bg-neutral-800 text-white font-medium py-4 px-8 rounded-xl text-sm transition-all duration-200 shadow-md active:scale-[0.99] flex items-center justify-center gap-3 tracking-wide cursor-pointer'
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+              </svg>
+              <span>ADD TO CART</span>
+            </button>
           </div>
+
+          {/* Trust & Guarantee Cards */}
+          <div className='grid grid-cols-3 gap-3 mt-10 pt-8 border-t border-gray-100 text-center'>
+            <div className='p-3 rounded-xl bg-gray-50/70 border border-gray-100'>
+              <svg className="w-5 h-5 mx-auto text-gray-700 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <p className='text-[11px] font-semibold text-gray-800'>100% Authentic</p>
+              <p className='text-[10px] text-gray-400'>Original product</p>
+            </div>
+
+            <div className='p-3 rounded-xl bg-gray-50/70 border border-gray-100'>
+              <svg className="w-5 h-5 mx-auto text-gray-700 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <p className='text-[11px] font-semibold text-gray-800'>COD Available</p>
+              <p className='text-[10px] text-gray-400'>Pay upon arrival</p>
+            </div>
+
+            <div className='p-3 rounded-xl bg-gray-50/70 border border-gray-100'>
+              <svg className="w-5 h-5 mx-auto text-gray-700 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <p className='text-[11px] font-semibold text-gray-800'>7-Day Return</p>
+              <p className='text-[10px] text-gray-400'>Hassle-free exchange</p>
+            </div>
+          </div>
+
         </div>
+
       </div>
 
-      {/* ------------- Description & Reviews Section ------------- */}
-      <div className='mt-20'>
-        <div className='flex'>
-          <button 
-            onClick={() => setActiveTab('description')} 
-            className={`border px-5 py-3 text-sm font-medium cursor-pointer transition-all ${
-              activeTab === 'description' ? 'bg-white border-b-white text-black' : 'bg-gray-50 text-gray-500'
-            }`}
-          >
-            Description
-          </button>
-          <button 
-            onClick={() => setActiveTab('reviews')} 
-            className={`border px-5 py-3 text-sm font-medium cursor-pointer transition-all ${
-              activeTab === 'reviews' ? 'bg-white border-b-white text-black' : 'bg-gray-50 text-gray-500'
-            }`}
-          >
-            Reviews (122)
-          </button>
+      {/* ================= Description & Reviews Tabs ================= */}
+      <div id="reviews" className='mt-24'>
+        {/* Tab Switcher Pills */}
+        <div className='flex items-center justify-center mb-8'>
+          <div className='inline-flex bg-gray-100/80 p-1.5 rounded-2xl border border-gray-200/60'>
+            <button 
+              onClick={() => setActiveTab('description')} 
+              className={`px-6 sm:px-8 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
+                activeTab === 'description' 
+                  ? 'bg-white text-gray-900 shadow-xs' 
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              Description & Details
+            </button>
+            <button 
+              onClick={() => setActiveTab('reviews')} 
+              className={`px-6 sm:px-8 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
+                activeTab === 'reviews' 
+                  ? 'bg-white text-gray-900 shadow-xs' 
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              Customer Reviews (122)
+            </button>
+          </div>
         </div>
 
-        {/* Tab Body */}
-        <div className='flex flex-col gap-4 border border-t-0 p-6 text-sm text-gray-500 leading-relaxed bg-white'>
+        {/* Tab Body Box */}
+        <div className='bg-white p-6 sm:p-10 rounded-3xl border border-gray-100 shadow-xs max-w-4xl mx-auto'>
           {activeTab === 'description' ? (
-            <div className='space-y-3'>
+            <div className='space-y-6 text-sm sm:text-base text-gray-600 leading-relaxed'>
+              <h3 className='text-lg font-semibold text-gray-900'>Product Information</h3>
               <p>
-                An e-commerce website is an online platform that facilitates the buying and selling of products or services over the internet. It serves as a virtual marketplace where businesses and individuals can showcase their products, interact with customers, and conduct transactions without the need for a physical presence.
+                Crafted with an uncompromising focus on everyday comfort and durability, this piece combines breathable, pre-shrunk cotton fabric with a balanced silhouette tailored for daily wear.
               </p>
-              <p>
-                E-commerce websites typically display products or services along with detailed descriptions, high-resolution images, pricing, available sizes or colors, and customer reviews. Each product usually has its own dedicated page with relevant information to help customers make informed purchasing decisions.
-              </p>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100 text-xs sm:text-sm'>
+                <div className='flex flex-col gap-1'>
+                  <span className='font-semibold text-gray-900'>Materials & Care:</span>
+                  <span className='text-gray-500'>100% Ring-Spun Cotton • Cold gentle machine wash</span>
+                </div>
+                <div className='flex flex-col gap-1'>
+                  <span className='font-semibold text-gray-900'>Fit & Silhouette:</span>
+                  <span className='text-gray-500'>True to size • Classic unisex relaxed drape</span>
+                </div>
+              </div>
             </div>
           ) : (
-            <div className='space-y-4'>
-              <div className='border-b pb-3'>
-                <div className='flex items-center gap-2'>
-                  <span className='font-medium text-gray-800'>Sarah M.</span>
-                  <div className='flex text-orange-500 text-xs'>★★★★★</div>
+            <div className='space-y-6'>
+              {/* Review 1 */}
+              <div className='border-b border-gray-100 pb-5'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-2.5'>
+                    <div className='w-8 h-8 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center'>
+                      SM
+                    </div>
+                    <div>
+                      <span className='font-semibold text-sm text-gray-900'>Sarah Mitchell</span>
+                      <span className='ml-2 text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium'>
+                        Verified Purchase
+                      </span>
+                    </div>
+                  </div>
+                  <div className='flex text-amber-400 text-xs'>★★★★★</div>
                 </div>
-                <p className='mt-1 text-gray-600'>Excellent quality! The fabric is soft and the fit is true to size. Delivered fast as well.</p>
+                <p className='mt-2.5 text-xs sm:text-sm text-gray-600 leading-relaxed'>
+                  Exceptional quality and fabric feel. It holds its shape perfectly even after multiple washes. Delivery was fast too!
+                </p>
               </div>
 
-              <div className='border-b pb-3'>
-                <div className='flex items-center gap-2'>
-                  <span className='font-medium text-gray-800'>David K.</span>
-                  <div className='flex text-orange-500 text-xs'>★★★★☆</div>
+              {/* Review 2 */}
+              <div className='pb-2'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-2.5'>
+                    <div className='w-8 h-8 rounded-full bg-gray-200 text-gray-700 text-xs font-bold flex items-center justify-center'>
+                      DK
+                    </div>
+                    <div>
+                      <span className='font-semibold text-sm text-gray-900'>David Kofi</span>
+                      <span className='ml-2 text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium'>
+                        Verified Purchase
+                      </span>
+                    </div>
+                  </div>
+                  <div className='flex text-amber-400 text-xs'>★★★★☆</div>
                 </div>
-                <p className='mt-1 text-gray-600'>Good value for money. Looks great when paired with jeans or casual trousers.</p>
+                <p className='mt-2.5 text-xs sm:text-sm text-gray-600 leading-relaxed'>
+                  Really clean design and premium stitching. Went for a size L and fits just right. Will definitely order more colors.
+                </p>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* ------------Display Latest Product -------------------- */}
-      <RelatedProducts category={productData.category} subCategory={productData.subCategory}/>
+      {/* ================= Display Related Products ================= */}
+      <div className='mt-24 pt-12 border-t border-gray-100'>
+        <RelatedProducts category={productData.category} subCategory={productData.subCategory} />
+      </div>
         
     </div>
   ) : <div className='opacity-0'></div>
