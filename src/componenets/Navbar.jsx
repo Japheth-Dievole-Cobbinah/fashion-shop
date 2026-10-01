@@ -6,10 +6,20 @@ import { ShopContext } from '../context/ShopContext';
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { setShowSearch, getCardCount } = useContext(ShopContext);
+  
+  // Safely grab context values (supports both getCartCount and getCardCount)
+  const context = useContext(ShopContext) || {};
+  const { setShowSearch, getCartCount, getCardCount } = context;
   const navigate = useNavigate();
 
-  // Detect scroll to add shadow when sticky
+  // Safe fallback to prevent crashes if context function is undefined
+  const cartCount = typeof getCartCount === 'function' 
+    ? getCartCount() 
+    : typeof getCardCount === 'function' 
+      ? getCardCount() 
+      : 0;
+
+  // Detect scroll to toggle sticky shadow
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -20,12 +30,12 @@ const Navbar = () => {
 
   const navLinkClass = ({ isActive }) =>
     `relative text-xs tracking-wider transition-colors duration-300 ${
-      isActive ? 'text-black font-medium' : 'text-gray-500 hover:text-black'
+      isActive ? 'text-black font-semibold' : 'text-gray-500 hover:text-black'
     }`;
 
   return (
     <>
-      {/* Sticky Navbar */}
+      {/* ================= Sticky Navbar ================= */}
       <nav
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           scrolled
@@ -37,10 +47,10 @@ const Navbar = () => {
 
           {/* Logo */}
           <Link to='/' className='flex-shrink-0'>
-            <img src={assets.logo} alt="logo" className='w-24 sm:w-32 lg:w-36' />
+            <img src={assets.logo} alt="logo" className='w-24 sm:w-32 lg:w-36 cursor-pointer' />
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation Links */}
           <ul className='hidden lg:flex items-center gap-8 xl:gap-10'>
             {[
               { path: '/', label: 'HOME' },
@@ -56,55 +66,96 @@ const Navbar = () => {
             ))}
           </ul>
 
-          {/* Icons Section */}
+          {/* Desktop Action Icons */}
           <div className='flex items-center gap-4 sm:gap-5'>
 
-            {/* Search */}
+            {/* 1. Search Button */}
             <button
+              type="button"
               onClick={() => {
                 setShowSearch(true);
                 navigate('/collection');
               }}
-              className='p-1.5 rounded-full hover:bg-gray-100 transition-all'
+              className='p-1.5 rounded-full hover:bg-gray-100 transition-all cursor-pointer'
+              aria-label="Search"
             >
               <img src={assets.search_icon} className='w-4 h-4 sm:w-5 sm:h-5' alt="search" />
             </button>
 
-            {/* Profile */}
-            <div className='group relative'>
-              <Link to='/login' className='p-1.5 rounded-full hover:bg-gray-100 transition-all block'>
+            {/* 2. Profile with Working Dropdown Links */}
+            <div className='group relative cursor-pointer'>
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className='p-1.5 rounded-full hover:bg-gray-100 transition-all flex items-center justify-center cursor-pointer'
+                aria-label="Profile"
+              >
                 <img src={assets.profile_icon} className='w-4 h-4 sm:w-5 sm:h-5' alt="profile" />
-              </Link>
+              </button>
 
-              {/* Dropdown */}
-              <div className='group-hover:block hidden absolute right-0 top-full pt-3 z-50'>
-                <div className='flex flex-col gap-1 w-44 py-2 px-3 bg-white rounded-xl shadow-lg border border-gray-100'>
-                  {['My Profile', 'Orders', 'Logout'].map((item) => (
-                    <p
-                      key={item}
-                      className='text-sm text-gray-500 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black cursor-pointer transition-all'
-                    >
-                      {item}
-                    </p>
-                  ))}
+              {/* Dropdown Menu (Fixed Click Actions) */}
+              <div className='group-hover:block hidden absolute right-0 top-full pt-2 z-50'>
+                <div className='flex flex-col gap-1 w-44 py-2 px-2 bg-white rounded-xl shadow-xl border border-gray-100'>
+                  
+                  {/* My Profile Action */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/login');
+                    }}
+                    className='text-left w-full text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black cursor-pointer transition-all'
+                  >
+                    My Profile
+                  </button>
+
+                  {/* Orders Action */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/orders');
+                    }}
+                    className='text-left w-full text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black cursor-pointer transition-all'
+                  >
+                    Orders
+                  </button>
+
+                  {/* Logout Action */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/login');
+                    }}
+                    className='text-left w-full text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-red-600 cursor-pointer transition-all'
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Cart */}
-            <Link to='/cart' className='relative p-1.5 rounded-full hover:bg-gray-100 transition-all'>
+            {/* 3. Cart Button with Dynamic Badge */}
+            <Link 
+              to='/cart' 
+              className='relative p-1.5 rounded-full hover:bg-gray-100 transition-all cursor-pointer flex items-center justify-center'
+              aria-label="Cart"
+            >
               <img src={assets.cart_icon} className='w-4 h-4 sm:w-5 sm:h-5' alt="cart" />
-              {getCardCount() > 0 && (
-                <span className='absolute -top-1 -right-1 w-4.5 h-4.5 min-w-[18px] h-[18px] text-center leading-[18px] bg-black text-white rounded-full text-[10px] font-medium'>
-                  {getCardCount()}
+              {cartCount > 0 && (
+                <span className='absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center leading-none bg-black text-white rounded-full text-[10px] font-medium px-1 shadow-xs'>
+                  {cartCount}
                 </span>
               )}
             </Link>
 
             {/* Mobile Menu Toggle */}
             <button
+              type="button"
               onClick={() => setVisible(true)}
-              className='lg:hidden p-1.5 rounded-full hover:bg-gray-100 transition-all'
+              className='lg:hidden p-1.5 rounded-full hover:bg-gray-100 transition-all cursor-pointer'
+              aria-label="Open menu"
             >
               <img src={assets.menu_icon} className='w-4 h-4 sm:w-5 sm:h-5' alt="menu" />
             </button>
@@ -112,10 +163,10 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Spacer to prevent content from hiding behind fixed navbar */}
+      {/* Spacer to prevent content overlap */}
       <div className={`${scrolled ? 'h-16' : 'h-20 sm:h-24'} transition-all duration-300`} />
 
-      {/* Mobile Sidebar Overlay */}
+      {/* ================= Mobile Sidebar Overlay ================= */}
       <div
         className={`fixed inset-0 bg-black/40 z-50 transition-opacity duration-300 lg:hidden ${
           visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -123,18 +174,16 @@ const Navbar = () => {
         onClick={() => setVisible(false)}
       />
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Drawer */}
       <div
-        className={`fixed top-0 right-0 bottom-0 w-72 sm:w-80 bg-white z-50 shadow-2xl transition-transform duration-300 lg:hidden ${
+        className={`fixed top-0 right-0 bottom-0 w-72 sm:w-80 bg-white z-50 shadow-2xl transition-transform duration-300 lg:hidden flex flex-col ${
           visible ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Header */}
         <div className='flex items-center justify-between p-5 border-b border-gray-100'>
-          <div className='flex items-center gap-3'>
-            <img src={assets.logo} alt="logo" className='w-24' />
-          </div>
+          <img src={assets.logo} alt="logo" className='w-24' />
           <button
+            type="button"
             onClick={() => setVisible(false)}
             className='p-2 rounded-full hover:bg-gray-100 transition-all'
           >
@@ -142,7 +191,6 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Navigation Links */}
         <nav className='flex flex-col p-5 gap-1'>
           {[
             { path: '/', label: 'Home' },
@@ -157,7 +205,7 @@ const Navbar = () => {
               className={({ isActive }) =>
                 `flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all ${
                   isActive
-                    ? 'bg-gray-100 text-black font-medium'
+                    ? 'bg-gray-100 text-black font-semibold'
                     : 'text-gray-500 hover:bg-gray-50 hover:text-black'
                 }`
               }
@@ -168,10 +216,8 @@ const Navbar = () => {
           ))}
         </nav>
 
-        {/* Separator */}
         <div className='mx-5 border-t border-gray-100' />
 
-        {/* Extra Links */}
         <div className='flex flex-col p-5 gap-1'>
           <NavLink
             to='/login'
@@ -195,7 +241,7 @@ const Navbar = () => {
             className='flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-500 hover:bg-gray-50 hover:text-black transition-all'
           >
             <img src={assets.cart_icon} className='w-4' alt="" />
-            Cart ({getCardCount()})
+            Cart ({cartCount})
           </NavLink>
         </div>
       </div>
